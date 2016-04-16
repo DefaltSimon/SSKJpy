@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='SSKJpy',
     author="DefaltSimon",
-    version='0.1',
+    version='0.1.1',
     license='MIT',
     packages=["sskjpy"],
     description="A Slovenian dictionary parser written in python",

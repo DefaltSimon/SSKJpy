@@ -1,6 +1,6 @@
 __author__ = "DefaltSimon"
 __name__ = "SSKJpy"
-__version__ = "0.1"
+__version__ = "0.1.1"
 __license__ = "MIT"
 
 from bs4 import BeautifulSoup
@@ -46,9 +46,12 @@ class SskjParser:
             if True:
                 another = line
                 break
+        if another is None:
+            raise NotFound("no data")
         if str(another).startswith("     "):
             another = str(fullsum)[5:]
-        final = another[len(self.firstkeyword())+2:]
+        keyword2 = self.bshtml.find("li",attrs={"class":"nounderline"}).find("b").text
+        final = another[(len(str(keyword2))+2):]
         begins = final.index("1.")
         return final[:begins-1]
     def moredefinitions(self,number):
@@ -136,13 +139,14 @@ class SskjParser:
         return str(final)
 
 
-# Ignore
+# Tests, ignore
 
 #sskj = SskjParser("test")
+#print(input("start:"))
 #print(sskj.slang())
 #print(sskj.resultattributes())
 #print(sskj.terminology())
 #print(sskj.result())
 #print(sskj.moredefinitions(4))
-#print(sskj.firstkeyword())
+#print(sskj.keyword)
 #print(sskj.shortsum())
