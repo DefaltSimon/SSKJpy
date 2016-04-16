@@ -1,5 +1,5 @@
 __author__ = "DefaltSimon"
-__title__ = "SSKJpy"
+__name__ = "SSKJpy"
 __version__ = "0.1"
 __license__ = "MIT"
 

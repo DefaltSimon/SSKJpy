@@ -1,0 +1,6 @@
+include README.txt
+include LICENSE
+include setup.py
+include sskjpy\__init__.py
+include sskjpy\sskj.py
+include *.txt
