@@ -97,8 +97,8 @@ class SskjParser:
             shsum = shsum[:-1]
         return str(shsum)
 
-    def firstkeyword(self):
-        """Returns the closest keyword.
+    def keyword(self):
+        """Returns the first keyword.
         Sometimes the exact word can't be found in the dictionary, returning the closest word.
         In that case your initial keyword won't be correct. Use this to see the real keyword.
         """
@@ -106,7 +106,7 @@ class SskjParser:
         return str(keyword)
 
     def terminology(self):
-        """Returns the terminology part of a defninition"""
+        """Returns the terminology part of a definition"""
         ht2 = str(self.bshtml.find("ol",{"start":"1"}).find("li",attrs={"class":"nounderline"}).text)
         try:
             beginning = ht2.index("◊")
