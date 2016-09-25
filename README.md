@@ -5,20 +5,19 @@ Uses [SSKJ](http://bos.zrc-sazu.si/sskj.html) website.
 
 1. Installing
 You can install it with pip:  
-```pip install SSKJpy```  
+`pip install git+https://github.com/DefaltSimon/SSKJpy.git`
+
 
 2. Use and simple examples:
 ```
-sskj = SskjParser("test")
-```  
-```
-summary = sskj.shortsum()  
-"postopek za ugotavljanje določenih lastnosti, sposobnosti, znanja koga, preizkus"  `
-  ```  
-  ```
-result = sskj.result()  
-`tést  -a m (ẹ̑) 1. postopek za ugotavljanje določenih lastnosti, sposobnosti, znanja koga, preizkus: opraviti
-test...
+sskj = SskjParser()
+
+data = sskj.get_definition("test")  
+
+data.word
+"test"
+data.summary
+"Postopek za ugotavljanje določenih lastnosti, [...]"
 ```
 
-#####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki)
+#####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki) (not yet updated for the new version)
