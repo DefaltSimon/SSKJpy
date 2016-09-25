@@ -1,14 +1,17 @@
-#### SSKJpy
+## SSKJpy
 A Slovenian dictionary API written in python
 
-Uses [SSKJ](http://bos.zrc-sazu.si/sskj.html) website.
-
-1. Installing
+Uses [sskj.si](http://sskj.si).
+---
+###1. Installing  
 You can install it with pip:  
-`pip install git+https://github.com/DefaltSimon/SSKJpy.git`
+`pip install git+https://github.com/DefaltSimon/SSKJpy.git`  
 
 
-2. Use and simple examples:
+Or clone the repo and run:  
+  `python setup.py install`  
+
+###2. Use and simple examples:
 ```
 sskj = SskjParser()
 
@@ -20,4 +23,4 @@ data.summary
 "Postopek za ugotavljanje določenih lastnosti, [...]"
 ```
 
-#####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki) (not yet updated for the new version)
+####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki) (not yet updated for the new version)
