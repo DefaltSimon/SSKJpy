@@ -4,7 +4,10 @@ A Slovenian dictionary API written in python
 Uses [sskj.si](http://sskj.si).
 ---
 ###1. Installing  
-You can install it with pip:  
+In order to run it you need [BeautifulSoup4](https://pypi.python.org/pypi/beautifulsoup4), which is available from pypi.  
+
+
+You can install SSKJpy with pip:  
 `pip install git+https://github.com/DefaltSimon/SSKJpy.git`  
 
 
@@ -23,4 +26,4 @@ data.summary
 "Postopek za ugotavljanje določenih lastnosti, [...]"
 ```
 
-####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki) (not yet updated for the new version)
+####Full documentation can be found on the [wiki](https://github.com/DefaltSimon/SSKJpy/wiki)
