@@ -1,152 +1,219 @@
-__author__ = "DefaltSimon"
-__name__ = "SSKJpy"
-__version__ = "0.1.1"
-__license__ = "MIT"
+# coding=utf-8
+import time
+import logging
+import urllib.request
+import unittest
 
 from bs4 import BeautifulSoup
-import requests
+from urllib.parse import quote as url_encode
+
+__author__ = "DefaltSimon"
+__version__ = "0.2"
+__license__ = "MIT"
+
+
+SEARCH_URL = "http://sskj.si/?s={}"
+MAX_DEFINITIONS = 50
+
+REPLACEMENTS = {
+    "\xa0": " "
+}
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
+# Utility
+
+
+def remove_num(d):
+    for n in range(1, MAX_DEFINITIONS):
+        if str(d).startswith(str(n) + "."):
+            return str(d).strip(str(n) + ".")
+
+
+def parse_encoding(data):
+    for target, replacement in REPLACEMENTS.items():
+        data = str(data).replace(target, replacement)
+
+    return data
+
+
+def clean(data):
+    return str(data).strip(" ").strip("\n")
+
 
 class NotFound(Exception):
     pass
 
-class SskjParser:
-    def __init__(self,keyword):
-        """Initializes the class, searching on bos.zrc-sazu.si immediately by keyword you passed
-        All results are sorted by relevancy.
 
-        Arguments:
-        | keyword(str) - term you want to search
+class Definition(object):
+    """
+    A word definition
+    """
+    def __init__(self, **kwargs):
+        # The term you searched for
+        self.word = kwargs.get("word")
+        # The closest word
+        self.keyword = kwargs.get("keyword")
+
+        # Summary is the first definitions
+        self.summary = kwargs.get("summary")
+        # A list of definitions
+        self.definitions = kwargs.get("definitions")
+        # The word's attributes
+        self.attributes = kwargs.get("attributes")
+
+        # And its terminology and slang
+        self.terminology = kwargs.get("terminology")
+        self.slang = kwargs.get("slang")
+
+        # Developer things...
+        self._timestamp = kwargs.get("timestamp")
+
+
+class SSKJParser:
+    """
+    The main class that gets definitions.
+    """
+
+    def __init__(self, max_cache_age=43200):
+        self.cache = {}
+        self.ages = {}
+
+        self.max_age = max_cache_age
+
+    def get_definition(self, word, allow_cache=True):
         """
-        self.keyword = str(keyword)
-        self.urltoget = "http://bos.zrc-sazu.si/cgi/a03.exe?name=sskj_testa&expression={}"
-        self.htmlunparsed = requests.get(self.urltoget.format(self.keyword))
-        self.bshtml = BeautifulSoup(self.htmlunparsed.content, "html.parser")
-
-    def result(self):
-        """Returns a definition of a word (with attributes and the keyword itself)
-        Example: tést  -a m (ẹ̑) 1. postopek za ugotavljanje določenih lastnosti, sposobnosti...
+        Gets the definition
+        :param word: str
+        :param allow_cache: bool
+        :return: Definition object
         """
-        fullsum = self.bshtml.find("ol",{"start":"1"}).find("li",attrs={"class":"nounderline"}).text
-        for line in str(fullsum).splitlines():
-            if True:
-                fullsum = line
-                break
-        if str(fullsum).startswith("     "):
-            fullsum = str(fullsum)[5:]
-        if str(fullsum).endswith(",") or str(fullsum).endswith(":"):
-            fullsum = str(fullsum)[:-1]
-        return str(fullsum)
+        # Return from cache if valid
+        if allow_cache and (str(word) in self.cache.keys()):
+            if (time.time() - self.ages.get(str(word))) < self.max_age:
 
-    def resultattributes(self):
-        """Returns attributes of a word.
-        Example: -a m (ẹ̑)
-        """
-        fullsum = self.bshtml.find("ol",{"start":"1"}).find("li",attrs={"class":"nounderline"}).text
-        for line in str(fullsum).splitlines():
-            if True:
-                another = line
-                break
-        if another is None:
-            raise NotFound("no data")
-        if str(another).startswith("     "):
-            another = str(fullsum)[5:]
-        keyword2 = self.bshtml.find("li",attrs={"class":"nounderline"}).find("b").text
-        final = another[(len(str(keyword2))+2):]
-        begins = final.index("1.")
-        return final[:begins-1]
-    def moredefinitions(self,number):
-        """Returns <number>-th definition found in dictionary (sorted by relevancy)
+                log.info("Using cache for '{}'".format(str(word)))
+                return self.cache.get(str(word))
 
-        Arguments:
-        | number(int) - the consecutive number of a definition that you want
+        log.info("Requesting definition for '{}'".format(word))
 
-        Example:
-        term = "test"; number = 2
-        The result would be "testament", because this word is closest to 'test' (after the 'test' itself).
-        """
-        if isinstance(number,int):
-            pass
-        elif isinstance(number,float):
-            if number % 1 != 0:
-                raise TypeError("var number must be an integer")
-            number = int(number)
+        word = str(word)
+        encoded = SEARCH_URL.format(url_encode(word))
+
+        html = urllib.request.urlopen(encoded)
+        bs_html = BeautifulSoup(html, "html.parser").find("div", {"class": "list-group results"})
+
+        try:
+            keyword = bs_html.find("span", {"class": "font_xlarge"}).text
+        except AttributeError:
+            # Return None as the word cannot be found
+            return None
+
+        attributes = bs_html.find("span", {"data-group": "header"}).text
+
+        # Find out if there are multiple definitions
+        try:
+            sub = bs_html.find("ol", {"class": "manual"}).find_all("li")
+            only_one = False
+        except AttributeError:
+            sub = None
+            only_one = True
+
+        if not only_one:
+            # Multiple definitions
+            definitions = [parse_encoding(a).capitalize() for a in [remove_num(a.text) for a in sub]]
+
+            # Last item also includes terminology and slang so we filter it
+            last_definition = definitions.pop().split("●")
+            # Then we add the last definition back
+            definitions.append(last_definition[0])
+
+            # And define terminology and slang
+            terminology = last_definition[1].split("♦")[0]
+            slang = last_definition[1].split("♦")[1]
+
         else:
-            raise TypeError("var number must be an integer")
-        url = "http://bos.zrc-sazu.si/cgi/a03.exe?name=sskj_testa&expression={}&hs={}".format(self.keyword,int(number))
-        self.htmlunparsed2 = requests.get(url.format(self.keyword))
-        self.bshtml2 = BeautifulSoup(self.htmlunparsed2.content, "html.parser")
+            # This word has only one definition
+            paragraph = str(bs_html.find("div", {"class": "list-group-item entry"})
+                            .text[len(keyword + attributes):]).replace(attributes, "")
 
-        fullsum = self.bshtml2.find("ol",{"start":int(number)}).find("li",attrs={"class":"nounderline"}).text
-        count = 1
-        for line in str(fullsum).splitlines():
-            if count == 1:
-                fullsum = line
-                break
-        if str(fullsum).startswith("     "):
-            fullsum = str(fullsum)[5:]
-        if str(fullsum).endswith(",") or str(fullsum).endswith(":"):
-            fullsum = str(fullsum)[:-1]
-        return str(fullsum)
+            # Figure out all types of definitions
+            if len(paragraph.split("●")) == 1:
+                slang = None
 
-    def shortsum(self):
-        """Returns a short summary of a word.
+                if len(paragraph.split("♦")) == 1:
+                    terminology = None
+                    definitions = [str(paragraph)]
 
-        Example:
-        keyword = "test"
-        Would return "postopek za ugotavljanje določenih lastnosti, sposobnosti, znanja koga, preizkus"
+                else:
+                    terminology = paragraph.split("♦")[1]
+                    definitions = [paragraph.split("♦")[0]]
+
+            else:
+                definitions = [paragraph.split("●")[0]]
+
+                if len(paragraph.split("♦")) == 1:
+                    terminology = None
+                    slang = paragraph.split("●")[1]
+
+                else:
+                    terminology = paragraph.split("♦")[1]
+                    slang = paragraph.split("●")[1].split("♦")[0]
+            # Uf.
+            definitions = [parse_encoding(a) for a in definitions]
+
+            # print(paragraph)
+
+        # Create object and remember time
+        timestamp = time.time()
+        obj = Definition(
+            word=word,
+            keyword=keyword,
+            attributes=attributes,
+            summary=clean(definitions[0]),
+            definitions=[clean(d) for d in definitions],
+            terminology=clean(terminology),
+            slang=clean(slang),
+            html=html,
+            timestamp=timestamp
+        )
+
+        # Store in cache if allowed
+        if allow_cache:
+            self.cache[str(word)] = obj
+            self.ages[str(word)] = timestamp
+
+        return obj
+
+    @staticmethod
+    def _set_max_definition_limit(limit):
         """
-        shsum = self.bshtml.find("li",attrs={"class":"nounderline"}).find("i").text
-        if str(shsum).endswith(":"):
-            shsum = shsum[:-1]
-        return str(shsum)
-
-    def keyword(self):
-        """Returns the first keyword.
-        Sometimes the exact word can't be found in the dictionary, returning the closest word.
-        In that case your initial keyword won't be correct. Use this to see the real keyword.
+        Sets MAX_DEFINITIONS to the specified limit.
+        :param limit: int
+        :return: None
         """
-        keyword = self.bshtml.find("li",attrs={"class":"nounderline"}).find("b").text
-        return str(keyword)
+        global MAX_DEFINITIONS
+        MAX_DEFINITIONS = int(limit)
 
-    def terminology(self):
-        """Returns the terminology part of a definition"""
-        ht2 = str(self.bshtml.find("ol",{"start":"1"}).find("li",attrs={"class":"nounderline"}).text)
-        try:
-            beginning = ht2.index("◊")
-        except ValueError:
-            raise NotFound("No terminology defined for this keyword")
-        try:
-            end = ht2.index("♪")
-            final = ht2[beginning+2:end-1]
-        except ValueError:
-            raise NotFound("Error occured, ♪ could not be found at the end. Weird?")
-
-        return str(final)
-
-    def slang(self):
-        """Returns the slang part of a definition"""
-        ht2 = str(self.bshtml.find("ol",{"start":"1"}).find("li",attrs={"class":"nounderline"}).text)
-        try:
-            beginning = ht2.index("●")
-        except ValueError:
-            raise NotFound("No slang examples defined for this keyword")
-        try:
-            end = ht2.index("◊")
-            final = ht2[beginning+2:end-1]
-        except ValueError:
-            raise NotFound("Error occured, ◊ could not be found at the end. Weird?")
-
-        return str(final)
+# Tests
 
 
-# Tests, ignore
+class SSKJTest(unittest.TestCase):
+    def test_dictionary(self):
+        self.assertIsNotNone(SSKJParser().get_definition("test"))
 
-#sskj = SskjParser("test")
-#print(input("start:"))
-#print(sskj.slang())
-#print(sskj.resultattributes())
-#print(sskj.terminology())
-#print(sskj.result())
-#print(sskj.moredefinitions(4))
-#print(sskj.keyword)
-#print(sskj.shortsum())
+    def test_max_definition_limit(self):
+        SSKJParser()._set_max_definition_limit(55)
+        self.assertEqual(MAX_DEFINITIONS, 55)
+
+
+# logging.basicConfig(level=logging.INFO)
+# parser = SSKJParser()
+# while True:
+#     inn = input(">")
+#     de = parser.get_definition(inn)
+#
+#     for k, v in de.__dict__.items():
+#         print("{}:{}".format(k, v))
+#
