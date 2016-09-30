@@ -1,5 +1,7 @@
 ## SSKJpy
-A Slovenian dictionary API written in python
+A Slovenian dictionary API written in python  
+![Python 3.5](https://img.shields.io/badge/python-3.2%2C%203.3%2C%203.4%2C%203.5-blue.svg)
+![MIT](https://img.shields.io/badge/license-MIT-yellow.svg)
 
 Uses [sskj.si](http://sskj.si).
 ---
