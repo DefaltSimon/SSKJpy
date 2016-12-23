@@ -1,3 +1,8 @@
+0.2
+- Completely rewritten!
+- Now faster and object-oriented
+- Using a different website with better layout
+
 0.1.1
 - Fixed error caused by wrong function call
 
