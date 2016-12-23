@@ -1,5 +1,2 @@
-.idea/workspace.xml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/sskjpy.iml
+.idea/
+__pycache__/

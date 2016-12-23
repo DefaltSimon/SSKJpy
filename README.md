@@ -16,7 +16,7 @@ Strongly recommended: install with requests module:
 
 
 Or clone the repo and run:
-  `python -m pip install .` (or `python -m pip install .[requests]` to get the "faster" implementation)
+  `python -m pip install .` (or `python -m pip install .[requests]` to get the "faster" implementation)  
 
 ###2. Use and simple examples:
 ```

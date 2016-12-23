@@ -81,7 +81,6 @@ class SSKJParser:
         :param allow_cache: Indicates if you want to check the cache for already-fetched definitions
         :type allow_cache: bool
         :param store_in_cache: Indicates if you want to save the definition in the cache after getting it
-        :type store_in_cache: bool
 
         :return: Definition object
         """

@@ -1,3 +1,7 @@
+0.2.1
+- Many improvements
+- Now with an optional dependency (requests) - RECOMMENDED
+
 0.2
 - Completely rewritten!
 - Now faster and object-oriented
